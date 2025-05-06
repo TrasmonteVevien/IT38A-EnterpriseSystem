@@ -4,7 +4,7 @@ require_once "config.php";
 
 // Check if user is already logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    header("location: jobseeker_dashboard.php");
+    header("location: index.php");
     exit;
 }
 
