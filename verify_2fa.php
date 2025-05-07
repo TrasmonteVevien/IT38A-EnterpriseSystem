@@ -4,7 +4,7 @@ require_once "config.php";
 
 // Check if user is in the verification process
 if (!isset($_SESSION["temp_user_id"])) {
-    header("location: jobseeker_login.php");
+    header("location: index.php");
     exit;
 }
 
@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     unset($_SESSION["temp_user_id"]);
                     
                     // Redirect to dashboard
-                    header("location: jobseeker_dashboard.php");
+                    header("location: dashboard.php");
                     exit;
                 } else {
                     $verification_err = "Invalid or expired verification code.";
@@ -130,7 +130,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
 
                 <p class="text-center mt-3">
-                    <a href="jobseeker_login.php" class="text-info">Back to Login</a>
+                    <a href="dashboard.php" class="text-info">Back to Login</a>
                 </p>
             </form>
         </div>

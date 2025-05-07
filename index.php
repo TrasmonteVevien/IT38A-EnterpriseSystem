@@ -4,7 +4,7 @@ require_once "config.php";
 
 // Check if user is already logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    header("location: index.php");
+    header("location: dashboard.php");
     exit;
 }
 
@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         if (empty($email_err) && empty($password_err)) {
-            $sql = "SELECT id, username, password, role FROM users WHERE email = :email AND role = 'jobseeker'";
+            $sql = "SELECT id, username, password, role FROM users WHERE email = :email AND role = 'jobseeker' , 'employer";
             
             if ($stmt = $pdo->prepare($sql)) {
                 $stmt->bindParam(":email", $email, PDO::PARAM_STR);
@@ -37,25 +37,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $row = $stmt->fetch(PDO::FETCH_ASSOC);
                         
                         if (password_verify($password, $row["password"])) {
-                            // Generate and send verification code
-                            $verification_code = sprintf("%06d", mt_rand(0, 999999));
-                            $expires = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+                            // Password is correct, start a new session
+                            session_start();
                             
-                            $update_sql = "UPDATE users SET verification_code = :code, verification_code_expires = :expires WHERE id = :id";
-                            if ($update_stmt = $pdo->prepare($update_sql)) {
-                                $update_stmt->bindParam(":code", $verification_code, PDO::PARAM_STR);
-                                $update_stmt->bindParam(":expires", $expires, PDO::PARAM_STR);
-                                $update_stmt->bindParam(":id", $row["id"], PDO::PARAM_INT);
-                                $update_stmt->execute();
-                            }
+                            // Store data in session variables
+                            $_SESSION["loggedin"] = true;
+                            $_SESSION["id"] = $row["id"];
+                            $_SESSION["username"] = $row["username"];
+                            $_SESSION["role"] = $row["role"];
                             
-                            if (sendVerificationEmail($email, $verification_code)) {
-                                $_SESSION["temp_user_id"] = $row["id"];
-                                header("location: verify_2fa.php");
-                                exit;
-                            } else {
-                                $login_err = "Failed to send verification code. Please try again.";
-                            }
+                            // Redirect user to dashboard page
+                            header("location: dashboard.php");
+                            exit;
                         } else {
                             $login_err = "Invalid email or password.";
                         }
@@ -77,7 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Seeker Login</title>
+    <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -132,7 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
     <div class="container">
         <div class="login-container">
-            <h2 class="text-center mb-4">Job Seeker Login</h2>
+            <h2 class="text-center mb-4">Login</h2>
             
             <?php 
             if (!empty($login_err)) {
